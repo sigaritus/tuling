@@ -7,7 +7,11 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -23,7 +27,9 @@ import com.android.volley.toolbox.Volley;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 
@@ -35,24 +41,55 @@ public class MainActivity extends Activity {
     public static String[] imgs={"http://img.blog.csdn.net/20150413155636375",
             "http://img.blog.csdn.net/20150413155714583","http://img.blog.csdn.net/20150413155811491"};
     public static String[] titles={"pic1","pic2","pic2"};
-
+    private String tuling
+            ="http://www.tuling123.com/openapi/api?key=1b3bf45520687fce41be4bef2c4e1e26&info=";
 //    private String url
 //    ="http://en.wikipedia.org/w/api.php?format=jsonfm&action=query&titles=android&prop=revisions&rvprop=content";
     private ImageView pic;
-    private String tuling
-            ="http://www.tuling123.com/openapi/api?key=1b3bf45520687fce41be4bef2c4e1e26&info=你爱我吗";
+    private ListView listView;
+    private EditText send_edt;
+    private Button send_btn;
+    private String user_send="";
+    private List<ListContent> lists;
+    private TextAdapter adapter;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        pic =(ImageView)findViewById(R.id.pic);
+        init_view();
+
         mQueue = Volley.newRequestQueue(MainActivity.this);
 
 //        readBitmapViaVolley("http://img.blog.csdn.net/20150413155636375",pic);
 
-        get_poem_info(tuling);
     }
 
+    public void init_view(){
+
+        listView = (ListView)findViewById(R.id.listview);
+        send_edt = (EditText)findViewById(R.id.send_edt);
+        send_btn = (Button)findViewById(R.id.send_btn);
+        lists = new ArrayList<ListContent>();
+        send_btn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                user_send = send_edt.getText().toString();
+
+                ListContent listContent = new ListContent(Constant.SENDER,user_send);
+
+                lists.add(listContent);
+
+                adapter.notifyDataSetChanged();
+
+                get_robot_info(tuling + user_send);
+
+            }
+        });
+
+        adapter = new TextAdapter(lists,MainActivity.this);
+        listView.setAdapter(adapter);
+
+    }
 
 
     public void readBitmapViaVolley(String imgUrl, final ImageView imageView) {
@@ -75,7 +112,7 @@ public class MainActivity extends Activity {
                 });
         mQueue.add(imgRequest);
     }
-    public void get_poem_info(String url){
+    public void get_robot_info(String url){
 
         JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET,url,null,
                 new Response.Listener<JSONObject>(){
@@ -84,13 +121,21 @@ public class MainActivity extends Activity {
                 String code="";
                 String text="";
                 try {
+
                      code =jsonObject.getString("code");
                      text =jsonObject.getString("text");
+                     ListContent listContent = new ListContent(Constant.RECEiVER,text);
+                     lists.add(listContent);
+
+
+                     adapter.notifyDataSetChanged();
+
+                    Toast.makeText(MainActivity.this,code+text+"success",Toast.LENGTH_SHORT).show();
 
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
-                Toast.makeText(MainActivity.this,code+text+"success",Toast.LENGTH_SHORT).show();
+
 
             }
         },new Response.ErrorListener() {
