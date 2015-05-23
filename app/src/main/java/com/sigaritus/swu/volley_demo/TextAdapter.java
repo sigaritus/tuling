@@ -45,8 +45,9 @@ public class TextAdapter extends BaseAdapter {
 
     @Override
     public long getItemId(int position) {
-        return list.size();
+        return position;
     }
+
 
     @Override
     public Object getItem(int position) {
@@ -55,6 +56,6 @@ public class TextAdapter extends BaseAdapter {
 
     @Override
     public int getCount() {
-        return 0;
+        return list.size();
     }
 }
